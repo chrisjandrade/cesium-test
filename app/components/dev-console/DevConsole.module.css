@@ -1,0 +1,39 @@
+
+.DevConsole {
+    position: absolute;
+    display: inline-block;
+    border-radius: 2px;
+    background-color: #161616;
+    z-index: 2;
+    bottom: 50px;
+    right: 10px;
+    padding: 12px 12px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.Loading {
+    position: absolute;
+    display: block;
+    z-index: 3;
+    background-color: rgba(255, 255, 255, 0.8);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 18px;
+    color: #000;
+    padding-top: 30%;
+    text-align: center;
+}
+
+.DevConsole .Container {
+    padding: 8px 8px;
+    border: 1px solid #2c2c2c;
+    border-radius: 2px;
+    margin-bottom: 4px;
+}
+
+.DevConsole .Container>div {
+    margin-bottom: 6px;
+}

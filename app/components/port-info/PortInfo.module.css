@@ -1,0 +1,36 @@
+
+.PortInfo {
+    width: 15vw;
+    min-width: 288px;
+    position: absolute;
+    z-index: 2;
+    top: 10px;
+    left: 10px;
+    border-radius: 2px;
+    background-color: #161616;
+    padding: 12px 12px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.closeIcon {
+    font-size: 10px;
+    float: right;
+    cursor: pointer;
+}
+
+.openWindowContainer {
+    font-size: 14px;
+    margin-top: 8px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.openWindowIcon {
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.portProperty strong {
+    float: right;
+}
