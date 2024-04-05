@@ -106,7 +106,7 @@ export function CesiumViewer() {
                 onSelectedEntityChange={onSelectedEntityChanged}
                 ref={viewerRef}>
 
-                <Scene mode={SceneMode.SCENE2D}/>
+                <Scene mode={SceneMode.SCENE2D} debugShowFramesPerSecond={true}/>
 
                 <ScreenSpaceEventHandler>
                     <ScreenSpaceEvent action={mouseMoveHandler} type={ScreenSpaceEventType.MOUSE_MOVE} />
