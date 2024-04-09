@@ -3,7 +3,6 @@
 import { retrievePorts, selectPort } from '@/app/reducers/portsSlice';
 import { getViewerFromRef } from '@/app/utils';
 import { ScreenSpaceEventType } from '@/public/cesium';
-import { createSelector } from '@reduxjs/toolkit';
 import { SceneMode } from 'cesium';
 import moment from 'moment';
 import { useSearchParams } from 'next/navigation';
@@ -12,23 +11,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Scene, ScreenSpaceEvent, ScreenSpaceEventHandler, Viewer } from 'resium';
 import { DevConsole } from '../dev-console/DevConsole';
 import { PortInfo } from '../port-info/PortInfo';
-import { Port } from '../port/Port';
+import { Ports } from '../ports/Ports';
 import { VehicleInfo } from '../vehicle-info/VehicleInfo';
-import { Vehicle } from '../vehicle/Vehicle';
 import styles from './CesiumViewer.module.css';
-
-const selectPorts = createSelector(
-    state => state.ports.data,
-    portsMap => Object.values(portsMap).
-        filter(port => port?.coordinates?.length > 0));
+import { Vehicles } from '../vehicles/Vehicles';
 
 export function CesiumViewer() {
 
     const viewerRef = useRef(null),
         containerRef = useRef(null),
         dispatch = useDispatch(),
-        ports = useSelector(selectPorts),
-        vehicles = useSelector(state => state.vehicles.data),
         selectedKey = useSelector(state => state.ports.selected),
         selectedVehicleKey = useSelector(state => state.vehicles.selected),
         searchParams = useSearchParams(),
@@ -78,9 +70,9 @@ export function CesiumViewer() {
             { scene } = viewer;
 
         if (scene && current) {
-            const entity = scene.pick(movement.endPosition);
+            const hovered = scene.pick(movement.endPosition);
 
-            if (entity) {
+            if (hovered) {
                 current.style.cursor = 'pointer';
             } else {
                 current.style.cursor = 'default';
@@ -120,20 +112,8 @@ export function CesiumViewer() {
                     <ScreenSpaceEvent action={mouseMoveHandler} type={ScreenSpaceEventType.MOUSE_MOVE} />
                 </ScreenSpaceEventHandler>
 
-                {ports.map(port => 
-                    <Port 
-                        key={port.id} 
-                        port={port} 
-                        selected={selectedKey === port.key}
-                        viewerRef={viewerRef} />)}
-
-                {vehicles.map(vehicle => 
-                    <Vehicle 
-                        key={vehicle.id}
-                        vehicle={vehicle} 
-                        selected={selectedVehicleKey === vehicle.id}
-                        viewerRef={viewerRef} 
-                        time={time} />)}
+                <Ports viewerRef={viewerRef} />
+                <Vehicles time={time} viewerRef={viewerRef} />
             </Viewer>
         </div>
     );

@@ -6,5 +6,9 @@ export const store = configureStore({
     reducer: {
         ports: portsReducer,
         vehicles: vehiclesReducer
-    }
+    },
+    middleware: (defaultMiddleware) => defaultMiddleware({
+        immutableCheck: false,
+        serializableCheck: false
+    })
 });
