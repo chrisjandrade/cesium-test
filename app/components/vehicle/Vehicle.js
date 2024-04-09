@@ -2,7 +2,7 @@ import { deselectVehicle, selectVehicle } from "@/app/reducers/vehiclesSlice";
 import { getViewerFromRef } from "@/app/utils";
 import { findCurrentPosition } from "@/app/utils/animation";
 import { Cartesian3, Color } from "cesium";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useStore } from "react-redux";
 import { BoxGraphics, Entity, LabelGraphics, PointGraphics } from "resium";
 
@@ -20,13 +20,13 @@ export function Vehicle({ vehicle, viewerRef, selected, time }) {
         viewer = getViewerFromRef(viewerRef),
         entityRef = useRef();
 
-    const onClick = (mvt, target) => {
+    const onClick = useCallback((mvt, target) => {
         if (vehicle.id !== store.getState().vehicles.selected) {
             dispatch(selectVehicle(vehicle.id));
         } else {
             dispatch(deselectVehicle());
         }
-    };
+    }, [vehicle, store, dispatch]);
 
     useEffect(() => {
         setCurrentCoords(findCurrentPosition(points, Date.now()));

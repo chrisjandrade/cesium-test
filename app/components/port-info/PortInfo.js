@@ -5,11 +5,12 @@ import { faWindowRestore } from "@fortawesome/free-regular-svg-icons";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tooltip } from "@mui/material";
-import { useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import Draggable from "react-draggable";
 import { useDispatch, useSelector } from "react-redux";
 import styles from './PortInfo.module.css';
 import { openExternalWindow } from "@/app/utils";
+import { createSelector } from "@reduxjs/toolkit";
 
 const initFields = (port) => {
     const { name, coordinates,
@@ -28,25 +29,28 @@ const initFields = (port) => {
     ].filter(({ value }) => !!value);
 };
 
+const selectSelectedPort = createSelector([
+    state => state.ports.selected,
+    state => state.ports.data
+], (selectedKey, portsMap) => portsMap[selectedKey]);
+
 export function PortInfo() {
 
-    const selectedKey = useSelector(state => state.ports.selected),
-        portsMap = useSelector(state => state.ports.data) || {},
-        selectedPort = Object.values(portsMap).find(port => port.key === selectedKey),
-        fields = initFields(selectedPort),
+    const selectedPort = useSelector(selectSelectedPort),
+        fields = useMemo(() => initFields(selectedPort), [selectedPort]),
         draggableRef = useRef(null),
         dispatch = useDispatch();
 
-    const onClose = () => {
+    const onClose = useCallback(() => {
         dispatch(deselectPort());
-    };
+    }, [dispatch]);
 
-    const openWindow = () => {
+    const openWindow = useCallback(() => {
         const params = new URLSearchParams();
-        params.set('selectedPort', selectedPort.key);
+            params.set('selectedPort', selectedPort.key);
 
         openExternalWindow(location.href, params);
-    };
+    }, [selectedPort]);
 
     return (
         <Draggable nodeRef={draggableRef}>
