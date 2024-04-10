@@ -1,20 +1,24 @@
 'use client';
 
 import { mockPorts } from "@/app/reducers/portsSlice";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { useDispatch, useSelector } from "react-redux";
 import styles from './DevConsole.module.css';
 import { mockVehicles } from "@/app/reducers/vehiclesSlice";
+import { createSelector } from "@reduxjs/toolkit";
 
 const MAX_BATCH_SIZE = 1000;
+
+const selectNumPorts = createSelector(state => 
+    state.ports.data, portsMap => Object.keys(portsMap).length);
 
 export function DevConsole() {
 
     const dispatch = useDispatch(), 
         draggableRef = useRef(),
         numPortsRef = useRef(),
-        numPorts = useSelector(state => Object.keys(state.ports.data).length),
+        numPorts = useSelector(selectNumPorts),
         numVehiclesRef = useRef(),
         numVehicles = useSelector(state => state.vehicles.data.length),
         [batchMode, setBatchMode] = useState(true),
@@ -26,10 +30,23 @@ export function DevConsole() {
     const stats = [
         { label: 'Number of Ports', value: numPorts },
         { label: 'Number of Vehicles', value: numVehicles },
+        { label: 'Total', value: numPorts + numVehicles },
         { label: 'Responsiveness (ms)', value: responsivenessMs }
     ];
 
-    const onMockPorts = () => {
+    const batchMockPorts = useCallback((remaining, batch) => {
+        if (remaining > 0) {
+            dispatch(mockPorts(Math.min(remaining, batch)));
+        } else {
+            setLoading(false);
+        }
+
+        if (remaining > 0) {
+            setTimeout(() => batchMockPorts(remaining - batch, batch), 1000);
+        }
+    },[dispatch]);
+
+    const onMockPorts = useCallback(() => {
         const { value } = numPortsRef.current,
             numPorts = parseFloat(value);
 
@@ -43,21 +60,21 @@ export function DevConsole() {
             }
 
         }
-    };
+    }, [numPortsRef, batchMockPorts, dispatch, batchMode]);
 
-    const batchMockPorts = (remaining, batch) => {
+    const batchMockVehicles = useCallback((remaining, batch) => {
         if (remaining > 0) {
-            dispatch(mockPorts(Math.min(remaining, batch)));
+            dispatch(mockVehicles(Math.min(remaining, batch)));
         } else {
             setLoading(false);
         }
 
         if (remaining > 0) {
-            setTimeout(() => batchMockPorts(remaining - batch, batch), 1000);
+            setTimeout(() => batchMockVehicles(remaining - batch, batch), 1000);
         }
-    };
+    }, [dispatch]);
 
-    const onMockVehicles = () => {
+    const onMockVehicles = useCallback(() => {
         const { value } = numVehiclesRef.current,
             numVehicles = parseFloat(value);
 
@@ -69,21 +86,9 @@ export function DevConsole() {
                 batchMockVehicles(numVehicles, Math.min(Math.floor(numVehicles / 10), MAX_BATCH_SIZE));
             }
         }
-    };
+    }, [numVehiclesRef, dispatch, batchMockVehicles, batchMode]);
 
-    const batchMockVehicles = (remaining, batch) => {
-        if (remaining > 0) {
-            dispatch(mockVehicles(Math.min(remaining, batch)));
-        } else {
-            setLoading(false);
-        }
-
-        if (remaining > 0) {
-            setTimeout(() => batchMockVehicles(remaining - batch, batch), 1000);
-        }
-    };
-
-    const runResponsiveness = () => {
+    const runResponsiveness = useCallback(() => {
         if (!isResponsivenessTesting) {
             let last = Date.now(),
                 delay = 100,
@@ -101,10 +106,10 @@ export function DevConsole() {
             setResponsivenessMs(undefined);
             clearInterval(intervalId);
         }
-    };
+    }, [intervalId, isResponsivenessTesting]);
 
-    const onBatchModeChange = () =>
-        setBatchMode(!batchMode);
+    const onBatchModeChange = useCallback(() =>
+        setBatchMode(!batchMode), [batchMode]);
 
     return (
         <Draggable nodeRef={draggableRef}>
