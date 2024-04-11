@@ -1,48 +1,55 @@
+'use client';
+
 import { deselectVehicle, selectVehicle } from "@/app/reducers/vehiclesSlice";
 import { getViewerFromRef } from "@/app/utils";
 import { findCurrentPosition } from "@/app/utils/animation";
-import { Cartesian3, Color } from "cesium";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useStore } from "react-redux";
-import { BoxGraphics, Entity, LabelGraphics, PointGraphics } from "resium";
-
-const VEHICLE_COLOR = new Color(235/255, 100/255, 52/255, 0.7);
+import { Cartesian3 } from "cesium";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import { BillboardGraphics, Entity } from "resium";
 
 export function Vehicle({ vehicle, viewerRef, selected, time }) {
 
-    const {points, name, id} = vehicle,
-        [currentCoords, setCurrentCoords] = useState(findCurrentPosition(points, Date.now())),
-        [lon, lat] = currentCoords,
-        position = Cartesian3.fromDegrees(lon, lat),
-        boxDimensions = new Cartesian3(100, 70, 10),
-        store = useStore(),
-        dispatch = useDispatch(),
-        viewer = getViewerFromRef(viewerRef),
-        entityRef = useRef();
+    const { name, id, points } = vehicle,
+        entityRef = useRef(),
+        [lastTime, setLastTime] = useState(time),
+        dispatch = useDispatch();
 
-    const onClick = useCallback((mvt, target) => {
-        if (vehicle.id !== store.getState().vehicles.selected) {
-            dispatch(selectVehicle(vehicle.id));
+    const currentTime = useMemo(() => {
+        if (time - lastTime >= 1000) {
+            setLastTime(time);
+            return time;
         } else {
+            return lastTime;
+        }
+    }, [time, lastTime]);
+
+    const position = useMemo(() => {
+        const [lon, lat] = findCurrentPosition(points, currentTime);
+        return Cartesian3.fromDegrees(lon, lat);
+    }, [points, currentTime]);
+
+    const handleClick = useCallback(() => {
+        if (selected) {
             dispatch(deselectVehicle());
+        } else {
+            dispatch(selectVehicle(id));
         }
-    }, [vehicle, store, dispatch]);
+    }, [id, selected, dispatch]);
 
     useEffect(() => {
-        setCurrentCoords(findCurrentPosition(points, Date.now()));
-    }, [points, time])
+        if (selected) {
+            const viewer = getViewerFromRef(viewerRef);
 
-    useEffect(() => {
-        if (entityRef?.current?.cesiumElement && selected) {
-            viewer.flyTo(entityRef.current.cesiumElement);
+            if (entityRef?.current?.cesiumElement && selected) {
+                viewer.flyTo(entityRef.current.cesiumElement);
+            }
         }
-    }, [selected, entityRef, viewer]);
+    }, [selected, viewerRef, entityRef]);
 
     return (
-        <Entity position={position} onClick={onClick} description={name} id={id} ref={entityRef}>
-            <PointGraphics pixelSize={5} color={Color.BLUE} />
-            <BoxGraphics dimensions={boxDimensions} fill={true} material={VEHICLE_COLOR} outline={true} outlineColor={Color.WHITE}/>
-            <LabelGraphics text={name} scale={.35} fillColor={Color.GHOSTWHITE}/>
+        <Entity position={position} onClick={handleClick} description={name} id={id} ref={entityRef}>
+            <BillboardGraphics image="images/ship.svg" height={16} width={16} />
         </Entity>
     );
 

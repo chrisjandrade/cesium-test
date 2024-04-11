@@ -2,10 +2,10 @@
 
 import { deselectPort, selectPort } from '@/app/reducers/portsSlice';
 import { getViewerFromRef } from '@/app/utils';
-import { Cartesian3, Color } from 'cesium';
+import { Cartesian3 } from 'cesium';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useStore } from 'react-redux';
-import { EllipseGraphics, Entity, LabelGraphics, PointGraphics } from 'resium';
+import { BillboardGraphics, Entity } from 'resium';
 
 export function Port({ port, viewerRef, selected }) {
 
@@ -37,9 +37,7 @@ export function Port({ port, viewerRef, selected }) {
 
     return (
         <Entity position={position} description={port.name} onClick={handleClick} id={port.key} ref={entityRef}>
-            <PointGraphics pixelSize={5} color={selected ? Color.GOLD : Color.DARKRED} />
-            <EllipseGraphics fill={false} outline={true} outlineWidth={selected ? 5 : 1} outlineColor={selected ? Color.GOLD : Color.DARKRED} semiMajorAxis={100} semiMinorAxis={100} />
-            <LabelGraphics text={port.name} scale={selected ? 0.50 : 0.35} fillColor={Color.GHOSTWHITE} />
+            <BillboardGraphics image="/images/gps-icon.svg" height={16} width={16} />
         </Entity>
     );
 }
